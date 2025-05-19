@@ -1,61 +1,25 @@
 from flask import Flask, request, jsonify
+from cipher.railfence import RailFenceCipher  # Thêm vào phần đầu của file api.py
 
-app = Flask(__name__)
+app = Flask(__name__) # <--- THÊM DÒNG NÀY ĐỂ KHỞI TẠO APP
 
-# Hàm mã hóa Vigenère
-def vigenere_encrypt(plain_text, key):
-    plain_text = plain_text.upper()
-    key = key.upper()
-    encrypted_text = ''
-    key_index = 0
+# Thêm đoạn sau vào trước hàm main
+# RAILFENCE CIPHER ALGORITHM
+railfence_cipher = RailFenceCipher()
 
-    for char in plain_text:
-        if char.isalpha():
-            shift = ord(key[key_index % len(key)]) - ord('A')
-            encrypted_char = chr(((ord(char) - ord('A') + shift) % 26) + ord('A'))
-            encrypted_text += encrypted_char
-            key_index += 1
-        else:
-            encrypted_text += char
-
-    return encrypted_text
-
-# Hàm giải mã Vigenère
-def vigenere_decrypt(cipher_text, key):
-    cipher_text = cipher_text.upper()
-    key = key.upper()
-    decrypted_text = ''
-    key_index = 0
-
-    for char in cipher_text:
-        if char.isalpha():
-            shift = ord(key[key_index % len(key)]) - ord('A')
-            decrypted_char = chr(((ord(char) - ord('A') - shift + 26) % 26) + ord('A'))
-            decrypted_text += decrypted_char
-            key_index += 1
-        else:
-            decrypted_text += char
-
-    return decrypted_text
-
-# API mã hóa
-@app.route('/api/vigenere/encrypt', methods=['POST'])
+@app.route('/api/railfence/encrypt', methods=['POST'])
 def encrypt():
-    data = request.get_json()
-    plain_text = data.get('plain_text', '')
-    key = data.get('key', '')
-    encrypted_text = vigenere_encrypt(plain_text, key)
+    data = request.json
+    plain_text = data['plain_text']
+    key = int(data['key'])
+    encrypted_text = railfence_cipher.rail_fence_encrypt(plain_text, key)
     return jsonify({'encrypted_text': encrypted_text})
-
-# API giải mã
-@app.route('/api/vigenere/decrypt', methods=['POST'])
+@app.route('/api/railfence/decrypt', methods=['POST'])
 def decrypt():
-    data = request.get_json()
-    cipher_text = data.get('cipher_text', '')
-    key = data.get('key', '')
-    decrypted_text = vigenere_decrypt(cipher_text, key)
+    data = request.json
+    cipher_text = data['cipher_text']
+    key = int(data['key'])
+    decrypted_text = railfence_cipher.rail_fence_decrypt(cipher_text, key)
     return jsonify({'decrypted_text': decrypted_text})
-
-# Chạy server
-if __name__ == '__main__':
-    app.run(debug=True)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=True)
